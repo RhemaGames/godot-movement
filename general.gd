@@ -104,3 +104,11 @@ func mouse_input(obj,event):
 		#obj.turn_input -= event.relative.x * obj.MOUSE_SENSITIVITY
 		#obj.transform.basis = Basis(obj.rot)
 		pass
+	if event is InputEventMouseButton and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+		print("Mouse Button ",event)
+		
+func joypad_input(obj,event):
+	if event is InputEventJoypadMotion:
+		print("Gamepad motion ",event)
+	if event is InputEventJoypadButton:
+		print("Gamepad button",event)

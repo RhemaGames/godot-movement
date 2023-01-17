@@ -14,6 +14,23 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 #func _process(delta):
 #	pass
+
+### We're using the documented defaults for a kinematic character from Godot's website. We edit it a bit to make sure it can be use for any object.
+
+### The object will need these variables to function
+
+#const GRAVITY = -24.8
+#var vel = Vector3()
+#const MAX_SPEED = 20
+#const JUMP_SPEED = 18
+#const ACCEL = 4.5
+
+#var dir = Vector3()
+
+#const DEACCEL= 16
+#const MAX_SLOPE_ANGLE = 40
+
+
 func process_movement_walk(obj,delta):
 	
 	obj.dir = obj.dir.normalized()
