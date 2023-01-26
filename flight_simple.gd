@@ -24,23 +24,22 @@ func process_movement_fly(obj,delta):
 	obj.target = obj.dir
 	obj.target *= obj.MAX_SPEED
 
-	var accel
+	var accel 
 	if obj.dir.dot(hvel) > 0:
 		accel = obj.ACCEL
 	else:
-		accel = obj.ACCEL
-	
+		accel = obj.ACCEL 
+			
 	#obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.x,obj.rot.x * 0.01)
 	#obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.y,obj.rot.y * 0.01)
 	#obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.z,obj.rot.z * 0.01)
 		
-	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.x,(obj.pitch_input * obj.TURN_SPEED * delta))
-	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.y,(obj.turn_input * obj.TURN_SPEED * delta))
-	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.z,(obj.rotation_input * obj.TURN_SPEED * delta))
+	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.x.normalized(),(-obj.movement_input["pitch"] * obj.TURN_SPEED * delta))
+	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.y.normalized(),(obj.movement_input["turn"] * obj.TURN_SPEED * delta))
+	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.z.normalized(),(-obj.movement_input["rotation"] * obj.TURN_SPEED * delta))
 	
-	#obj.transform.basis = obj.transform.basis.normalized()
 	
-	obj.ship.rotation.y = lerp(obj.ship.rotation.y,-obj.turn_input * obj.TURN_SPEED * delta ,1.5*delta)	
+	#obj.ship.rotation.y = lerp(obj.ship.rotation.y,obj.turn_input * obj.TURN_SPEED * delta ,1.5*delta)	
 	
 	hvel = hvel.linear_interpolate(obj.target, accel * delta)
 	obj.vel.x = hvel.x

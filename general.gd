@@ -23,36 +23,35 @@ func process_input(obj,camera,delta):
 	# Walking
 	obj.dir = Vector3()
 	var cam_xform = camera.get_global_transform()
+	#var input_movement_vector = Vector2.ZERO
+	#var input_rotation_vector = Vector3.ZERO
 
-	var input_movement_vector = Vector2.ZERO
-	var input_rotation_vector = Vector3.ZERO
-
-
+	
 	if obj.INVERSE_CONTROL:
-		obj.pitch_input =  Input.get_action_strength("movement_pitch_up") - Input.get_action_strength("movement_pitch_down")
+		obj.movement_input["pitch"] =  Input.get_action_strength("movement_pitch_up") - Input.get_action_strength("movement_pitch_down")
 	else:
-		obj.pitch_input = Input.get_action_strength("movement_pitch_down") - Input.get_action_strength("movement_pitch_up")
+		obj.movement_input["pitch"]  = Input.get_action_strength("movement_pitch_down") - Input.get_action_strength("movement_pitch_up")
 		
 	#obj.turn_input = Input.get_action_strength("ui_left") - Input.get_action_strength("ui_right") 
-	obj.rotation_input = Input.get_action_strength("movement_roll_right") - Input.get_action_strength("movement_roll_left")
-	obj.thrust_input = Input.get_action_strength("movement_forward") - Input.get_action_strength("movement_backward")
-	obj.strafe_input = Input.get_action_strength("movement_strafe_right") - Input.get_action_strength("movement_strafe_left")
+	obj.movement_input["rotation"] = Input.get_action_strength("movement_roll_right") - Input.get_action_strength("movement_roll_left")
+	obj.movement_input["thrust"] = Input.get_action_strength("movement_forward") - Input.get_action_strength("movement_backward")
+	obj.movement_input["strafe"] = Input.get_action_strength("movement_strafe_right") - Input.get_action_strength("movement_strafe_left")
 
-	input_movement_vector = input_movement_vector.normalized()
-	input_rotation_vector = input_rotation_vector.normalized()
+	#input_movement_vector = input_movement_vector.normalized()
+	#input_rotation_vector = input_rotation_vector.normalized()
 
 	# Basis vectors are already normalized.
 	
-	obj.dir += cam_xform.basis.z * obj.thrust_input
-	obj.dir += -cam_xform.basis.x * obj.strafe_input
+	obj.dir += -cam_xform.basis.z * obj.movement_input["thrust"]
+	obj.dir += cam_xform.basis.x * obj.movement_input["strafe"]
 		
 	# ----------------------------------
 
 	# ----------------------------------
-	# Jump
-	if obj.is_on_floor():
-		if Input.is_action_just_pressed("movement_jump"):
-			obj.vel.y = obj.JUMP_SPEED
+	## Jump
+	#if obj.is_on_floor():
+	#	if Input.is_action_just_pressed("movement_jump"):
+	#		obj.vel.y = obj.JUMP_SPEED
 	# ----------------------------------
 
 	# ----------------------------------
@@ -81,10 +80,11 @@ func mouse_input(obj,event):
 		#obj.transform.basis = Basis(obj.rot)
 		pass
 	if event is InputEventMouseButton and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
-		print("Mouse Button ",event)
+		
+		pass
 		
 func joypad_input(obj,event):
 	if event is InputEventJoypadMotion:
-		print("Gamepad motion ",event)
+		print_debug("Gamepad motion ",event)
 	if event is InputEventJoypadButton:
-		print("Gamepad button",event)
+		print_debug("Gamepad button",event)
