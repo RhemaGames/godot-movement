@@ -27,33 +27,11 @@ func process_input(obj,camera,delta):
 	var input_movement_vector = Vector2.ZERO
 	var input_rotation_vector = Vector3.ZERO
 
-	if Input.is_action_pressed("movement_forward"):
-		input_movement_vector.y += 1
-	if Input.is_action_pressed("movement_backward"):
-		input_movement_vector.y -= 1
-	if Input.is_action_pressed("movement_strafe_left"):
-		input_movement_vector.x -= 1
-	if Input.is_action_pressed("movement_strafe_right"):
-		input_movement_vector.x += 1
-#	if Input.is_action_pressed("movement_roll_left"):
-#		input_rotation_vector.z -= 1
-#	if Input.is_action_pressed("movement_roll_right"):
-#		input_rotation_vector.z += 1
-	
-#	if Input.is_action_pressed("ui_up"):
-#		input_rotation_vector.x += 1
-#	if Input.is_action_pressed("ui_down"):
-#		input_rotation_vector.x -= 1
-#	
-#	if Input.is_action_pressed("ui_left"):
-#		input_rotation_vector.y += 1
-#	if Input.is_action_pressed("ui_right"):
-#		input_rotation_vector.y -= 1
-		
+
 	if obj.INVERSE_CONTROL:
-		obj.pitch_input =  Input.get_action_strength("ui_up") - Input.get_action_strength("ui_down")
+		obj.pitch_input =  Input.get_action_strength("movement_pitch_up") - Input.get_action_strength("movement_pitch_down")
 	else:
-		obj.pitch_input = Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
+		obj.pitch_input = Input.get_action_strength("movement_pitch_down") - Input.get_action_strength("movement_pitch_up")
 		
 	#obj.turn_input = Input.get_action_strength("ui_left") - Input.get_action_strength("ui_right") 
 	obj.rotation_input = Input.get_action_strength("movement_roll_right") - Input.get_action_strength("movement_roll_left")
@@ -64,11 +42,9 @@ func process_input(obj,camera,delta):
 	input_rotation_vector = input_rotation_vector.normalized()
 
 	# Basis vectors are already normalized.
-	obj.dir += -cam_xform.basis.z * input_movement_vector.y
-	obj.dir += cam_xform.basis.x * input_movement_vector.x
-	#obj.rot.x += input_rotation_vector.x 
-	#obj.rot.z += input_rotation_vector.z 
-	#obj.rot.y += input_rotation_vector.y 
+	
+	obj.dir += cam_xform.basis.z * obj.thrust_input
+	obj.dir += -cam_xform.basis.x * obj.strafe_input
 		
 	# ----------------------------------
 

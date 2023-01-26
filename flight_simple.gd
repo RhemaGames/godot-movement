@@ -1,19 +1,10 @@
 extends Node
 
 
-# Declare member variables here. Examples:
-# var a = 2
-# var b = "text"
-
-
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	pass # Replace with function body.
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
 func process_movement_fly(obj,delta):
 	
 	obj.dir = obj.dir.normalized()
@@ -43,10 +34,11 @@ func process_movement_fly(obj,delta):
 	#obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.y,obj.rot.y * 0.01)
 	#obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.z,obj.rot.z * 0.01)
 		
-	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.x,obj.pitch_input * obj.TURN_SPEED * delta)
-	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.y,obj.turn_input * obj.TURN_SPEED * delta)
-	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.z,obj.rotation_input * obj.TURN_SPEED * delta)
+	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.x,(obj.pitch_input * obj.TURN_SPEED * delta))
+	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.y,(obj.turn_input * obj.TURN_SPEED * delta))
+	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.z,(obj.rotation_input * obj.TURN_SPEED * delta))
 	
+	#obj.transform.basis = obj.transform.basis.normalized()
 	
 	obj.ship.rotation.y = lerp(obj.ship.rotation.y,-obj.turn_input * obj.TURN_SPEED * delta ,1.5*delta)	
 	
