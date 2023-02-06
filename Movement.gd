@@ -4,8 +4,7 @@ extends Node
 # Declare member variables here. Examples:
 # var a = 2
 # var b = "text"
-
-
+var mode = "walk"
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	pass # Replace with function body.
@@ -15,41 +14,87 @@ func _ready():
 #func _process(delta):
 #	pass
 
+func Init(_mode):
+	var move_dict = {}
+	match _mode:
+		"walk": 
+			mode = "walk"
+			move_dict = {
+				"movement_turn_left":["a"],
+				"movement_turn_right":["d"],
+				"movement_forward":["w"],
+				"movement_backward":["s"]
+			}
+			for act in move_dict.keys():
+				InputMap.add_action(act)
+				for input in move_dict[act]:
+					InputMap.action_add_event(act,input)
+		"fly":
+			mode = "fly"
+			move_dict = {
+				"movement_pitch_up":[{"key":KEY_UP}],
+				"movement_pitch_down":[{"key":KEY_DOWN}],
+				"movement_strafe_left":[{"key":KEY_A}],
+				"movement_strafe_right":[{"key":KEY_D}],
+				"movement_forward":[{"key":KEY_W}],
+				"movement_backward":[{"key":KEY_S}]
+			}
+			for act in move_dict.keys():
+				InputMap.add_action(act)
+				for input in move_dict[act]:
+					var key = InputEventKey.new()
+					key.set_physical_scancode(input["key"])
+					InputMap.action_add_event(act,key)
+		"drive":
+			mode = "drive" 
+	
+
 #### We're using the documented defaults for a kinematic character from Godot's website. Edited for use in Mistro instead of needing to be copied and pasted every node.
 	
-func process_input(obj,camera,disable,ddelta):
+func process_input(obj,camera,disable,inputMap):
 
-	# ----------------------------------
-	# Walking
 	obj.dir = Vector3()
 	var cam_xform = camera.get_global_transform()
-	#var input_movement_vector = Vector2.ZERO
-	#var input_rotation_vector = Vector3.ZERO
-
 	
-	if obj.INVERSE_CONTROL:
-		obj.movement_input["pitch"] =  Input.get_action_strength("movement_pitch_up") - Input.get_action_strength("movement_pitch_down")
-	else:
-		obj.movement_input["pitch"]  = Input.get_action_strength("movement_pitch_down") - Input.get_action_strength("movement_pitch_up")
+	match mode:
+		"fly":
+			if obj.INVERSE_CONTROL:
+				obj.movement_input["pitch"] =  Input.get_action_strength("movement_pitch_up") - Input.get_action_strength("movement_pitch_down")
+			else:
+				obj.movement_input["pitch"]  = Input.get_action_strength("movement_pitch_down") - Input.get_action_strength("movement_pitch_up")
 		
-	#obj.turn_input = Input.get_action_strength("ui_left") - Input.get_action_strength("ui_right") 
-	obj.movement_input["rotation"] = Input.get_action_strength("movement_roll_right") - Input.get_action_strength("movement_roll_left")
-	if !"thrust" in disable: 
-		obj.movement_input["thrust"] = Input.get_action_strength("movement_forward") - Input.get_action_strength("movement_backward")
-	else:
-		obj.movement_input["thrust"] = 0
-	if !"strafe" in disable:
-		obj.movement_input["strafe"] = Input.get_action_strength("movement_strafe_right") - Input.get_action_strength("movement_strafe_left")
-	else:
-		obj.movement_input["strafe"] = 0	
+			obj.movement_input["rotation"] = Input.get_action_strength("movement_roll_right") - Input.get_action_strength("movement_roll_left")
+			if !"thrust" in disable: 
+				obj.movement_input["thrust"] = Input.get_action_strength("movement_forward") - Input.get_action_strength("movement_backward")
+			else:
+				obj.movement_input["thrust"] = 0
+			if !"strafe" in disable:
+				obj.movement_input["strafe"] = Input.get_action_strength("movement_strafe_right") - Input.get_action_strength("movement_strafe_left")
+			else:
+				obj.movement_input["strafe"] = 0	
 
-	#input_movement_vector = input_movement_vector.normalized()
-	#input_rotation_vector = input_rotation_vector.normalized()
+			#input_movement_vector = input_movement_vector.normalized()
+			#input_rotation_vector = input_rotation_vector.normalized()
 
-	# Basis vectors are already normalized.
 	
-	obj.dir += -cam_xform.basis.z * obj.movement_input["thrust"]
-	obj.dir += cam_xform.basis.x * obj.movement_input["strafe"]
+			obj.dir += -cam_xform.basis.z * obj.movement_input["thrust"]
+			obj.dir += cam_xform.basis.x * obj.movement_input["strafe"]
+			
+		"walk":
+			obj.movement_input["rotation"] = Input.get_action_strength("movement_turn_right") - Input.get_action_strength("movement_turn_left")
+			
+			if !"walk" in disable: 
+				obj.movement_input["walk"] = Input.get_action_strength("movement_forward") - Input.get_action_strength("movement_backward")
+			else:
+				obj.movement_input["walk"] = 0
+				
+			if !"strafe" in disable:
+				obj.movement_input["strafe"] = Input.get_action_strength("movement_strafe_right") - Input.get_action_strength("movement_strafe_left")
+			else:
+				obj.movement_input["strafe"] = 0
+			
+			obj.dir += -cam_xform.basis.z * obj.movement_input["thrust"]
+			obj.dir += cam_xform.basis.x * obj.movement_input["strafe"]
 		
 	# ----------------------------------
 
@@ -73,6 +118,9 @@ func process_input(obj,camera,disable,ddelta):
 	for act in obj.actions:
 		if Input.is_action_just_pressed(act):
 			obj.emit_signal("action",act)
+			
+			
+# Mouse look
 
 func mouse_input(obj,event):
 		# Mouse look (only if the mouse is captured).
