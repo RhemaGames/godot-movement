@@ -37,13 +37,19 @@ func Init(_mode):
 				"movement_strafe_left":[{"key":KEY_A}],
 				"movement_strafe_right":[{"key":KEY_D}],
 				"movement_forward":[{"key":KEY_W}],
-				"movement_backward":[{"key":KEY_S}]
+				"movement_backward":[{"key":KEY_S}],
+				"movement_roll_right":[{"key":KEY_E}],
+				"movement_roll_left":[{"key":KEY_Q}],
+				"movement_turn_right":[{"key":KEY_RIGHT}],
+				"movement_turn_left":[{"key":KEY_LEFT}]
 			}
+# Code adds Input map keys and joypad support
+
 			for act in move_dict.keys():
 				InputMap.add_action(act)
 				for input in move_dict[act]:
 					var key = InputEventKey.new()
-					key.set_physical_scancode(input["key"])
+					key.set_physical_scancode(move_dict[act][0]["key"])
 					InputMap.action_add_event(act,key)
 		"drive":
 			mode = "drive" 
@@ -64,6 +70,8 @@ func process_input(obj,camera,disable,inputMap):
 				obj.movement_input["pitch"]  = Input.get_action_strength("movement_pitch_down") - Input.get_action_strength("movement_pitch_up")
 		
 			obj.movement_input["rotation"] = Input.get_action_strength("movement_roll_right") - Input.get_action_strength("movement_roll_left")
+			obj.movement_input["turn"] = Input.get_action_strength("movement_turn_left") - Input.get_action_strength("movement_turn_right")
+			
 			if !"thrust" in disable: 
 				obj.movement_input["thrust"] = Input.get_action_strength("movement_forward") - Input.get_action_strength("movement_backward")
 			else:
@@ -81,7 +89,7 @@ func process_input(obj,camera,disable,inputMap):
 			obj.dir += cam_xform.basis.x * obj.movement_input["strafe"]
 			
 		"walk":
-			obj.movement_input["rotation"] = Input.get_action_strength("movement_turn_right") - Input.get_action_strength("movement_turn_left")
+			obj.movement_input["turn"] = Input.get_action_strength("movement_turn_right") - Input.get_action_strength("movement_turn_left")
 			
 			if !"walk" in disable: 
 				obj.movement_input["walk"] = Input.get_action_strength("movement_forward") - Input.get_action_strength("movement_backward")
@@ -96,16 +104,17 @@ func process_input(obj,camera,disable,inputMap):
 			obj.dir += -cam_xform.basis.z * obj.movement_input["thrust"]
 			obj.dir += cam_xform.basis.x * obj.movement_input["strafe"]
 		
-	# ----------------------------------
+			# ----------------------------------
 
-	# ----------------------------------
-	## Jump
-	#if obj.is_on_floor():
-	#	if Input.is_action_just_pressed("movement_jump"):
-	#		obj.vel.y = obj.JUMP_SPEED
-	# ----------------------------------
+			# ----------------------------------
+			## Jump
+			if obj.is_on_floor():
+				if Input.is_action_just_pressed("movement_jump"):
+					obj.vel.y = obj.JUMP_SPEED
+			# ----------------------------------
 
-	# ----------------------------------
+			# ----------------------------------
+			
 	# Capturing/Freeing the cursor
 	if Input.is_action_just_pressed("ui_cancel"):
 		if Input.get_mouse_mode() == Input.MOUSE_MODE_VISIBLE:
@@ -152,7 +161,7 @@ func process_movement_fly(obj,delta):
 	#if obj.dir.z < 0 and obj.thrust < obj.MAX_SPEED:
 	#	obj.thrust -= 1
 	
-	obj.vel.y += delta * obj.world.GRAVITY
+	obj.vel.y += obj.world.GRAVITY - obj.world.ATMO
 
 	
 
@@ -163,7 +172,7 @@ func process_movement_fly(obj,delta):
 	obj.target = obj.dir
 	obj.target *= obj.MAX_SPEED
 
-	var accel 
+	var accel:float 
 	if obj.dir.dot(hvel) > 0:
 		accel = obj.ACCEL - (obj.world.GRAVITY + obj.world.ATMO)
 	else:
@@ -184,7 +193,8 @@ func process_movement_fly(obj,delta):
 	obj.vel.x = hvel.x
 	obj.vel.y = hvel.y
 	obj.vel.z = hvel.z 
-	obj.vel = obj.move_and_slide(obj.vel, Vector3(0, 1, 0), 0.05, 4, deg2rad(obj.MAX_SLOPE_ANGLE))
+	obj.vel = obj.move_and_slide(obj.vel, Vector3(0, 0, 0), 0.05, 4, deg2rad(obj.MAX_SLOPE_ANGLE))
+	#obj.vel = obj.move_and_collide(obj.vel)
 	
 	
 
