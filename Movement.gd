@@ -14,21 +14,26 @@ func _ready():
 #func _process(delta):
 #	pass
 
-func Init(_mode):
+func Init(obj,_mode):
 	var move_dict = {}
 	match _mode:
 		"walk": 
 			mode = "walk"
 			move_dict = {
-				"movement_turn_left":["a"],
-				"movement_turn_right":["d"],
-				"movement_forward":["w"],
-				"movement_backward":["s"]
+				"movement_turn_left":[{"key":KEY_A}],
+				"movement_turn_right":[{"key":KEY_D}],
+				"movement_forward":[{"key":KEY_W}],
+				"movement_backward":[{"key":KEY_S}],
+				"movement_jump":[{"key":KEY_SPACE}],
+				"movement_crouch":[{"key":KEY_CONTROL}],
+				"movement_run":[{"key":KEY_SHIFT}],
+				"movement_strafe_left":[{"key":KEY_Z}],
+				"movement_strafe_right":[{"key":KEY_X}]
 			}
-			for act in move_dict.keys():
-				InputMap.add_action(act)
-				for input in move_dict[act]:
-					InputMap.action_add_event(act,input)
+			var point = Position3D.new()
+			point.name = "ActivePoint"
+			obj.add_child(point)
+			
 		"fly":
 			mode = "fly"
 			move_dict = {
@@ -43,24 +48,25 @@ func Init(_mode):
 				"movement_turn_right":[{"key":KEY_RIGHT}],
 				"movement_turn_left":[{"key":KEY_LEFT}]
 			}
-# Code adds Input map keys and joypad support
-
-			for act in move_dict.keys():
-				InputMap.add_action(act)
-				for input in move_dict[act]:
-					var key = InputEventKey.new()
-					key.set_physical_scancode(move_dict[act][0]["key"])
-					InputMap.action_add_event(act,key)
 		"drive":
-			mode = "drive" 
+			mode = "drive"
+			
+	for act in move_dict.keys():
+		InputMap.add_action(act)
+		for input in move_dict[act]:
+			var key = InputEventKey.new()
+			key.set_physical_scancode(move_dict[act][0]["key"])
+			InputMap.action_add_event(act,key)
+		
 	
 
 #### We're using the documented defaults for a kinematic character from Godot's website. Edited for use in Mistro instead of needing to be copied and pasted every node.
 	
-func process_input(obj,camera,disable,inputMap):
+func process_input(obj,disable,inputMap):
 
 	obj.dir = Vector3()
-	var cam_xform = camera.get_global_transform()
+	var anchor = obj.get_node("ActivePoint")
+	var cam_xform = anchor.get_global_transform()
 	
 	match mode:
 		"fly":
@@ -89,7 +95,7 @@ func process_input(obj,camera,disable,inputMap):
 			obj.dir += cam_xform.basis.x * obj.movement_input["strafe"]
 			
 		"walk":
-			obj.movement_input["turn"] = Input.get_action_strength("movement_turn_right") - Input.get_action_strength("movement_turn_left")
+			obj.movement_input["turn"] =  Input.get_action_strength("movement_turn_left") - Input.get_action_strength("movement_turn_right")
 			
 			if !"walk" in disable: 
 				obj.movement_input["walk"] = Input.get_action_strength("movement_forward") - Input.get_action_strength("movement_backward")
@@ -101,7 +107,7 @@ func process_input(obj,camera,disable,inputMap):
 			else:
 				obj.movement_input["strafe"] = 0
 			
-			obj.dir += -cam_xform.basis.z * obj.movement_input["thrust"]
+			obj.dir += -cam_xform.basis.z * obj.movement_input["walk"]
 			obj.dir += cam_xform.basis.x * obj.movement_input["strafe"]
 		
 			# ----------------------------------
@@ -132,15 +138,20 @@ func process_input(obj,camera,disable,inputMap):
 # Mouse look
 
 func mouse_input(obj,event):
+	var sensitivity = 1
 		# Mouse look (only if the mouse is captured).
+	if obj.MOUSE_SENSITIVITY:
+		sensitivity = obj.MOUSE_SENSITIVITY
+		
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		# Horizontal mouse look.
-		#obj.rot.y -= event.relative.x * obj.MOUSE_SENSITIVITY
-		# Vertical mouse look.
-		#obj.rot.x = clamp(obj.rot.x - event.relative.y * obj.MOUSE_SENSITIVITY, -1.57, 1.57)
+		obj.rot.y -= event.relative.x * sensitivity
+		obj.rot.y -= wrapf(obj.rot.y, 0.0 , 360.0)
+		 #Vertical mouse look.
+		#obj.rot.x = clamp(obj.rot.x - event.relative.y * sensitivity, -1.57, 1.57)
 		#obj.pitch_input = clamp(obj.rot.x - event.relative.y * obj.TURN_SPEED, -1.57, 1.57)
 		#obj.turn_input -= event.relative.x * obj.MOUSE_SENSITIVITY
-		#obj.transform.basis = Basis(obj.rot)
+		obj.transform.basis = Basis(obj.rot)
 		pass
 	if event is InputEventMouseButton and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		
@@ -203,23 +214,31 @@ func process_movement_walk(obj,delta):
 	obj.dir = obj.dir.normalized()
 	
 	
-	obj.vel.y += delta * obj.GRAVITY
+	obj.vel.y += obj.world.GRAVITY
 	
 
 	var hvel = obj.vel
 	#hvel.y = 0
 
-	var target = obj.dir
-	target *= obj.MAX_SPEED
+	obj.target = obj.dir
+	obj.target *= obj.MAX_SPEED
 
 	var accel
 	if obj.dir.dot(hvel) > 0:
 		accel = obj.ACCEL
 	else:
-		accel =obj.DEACCEL
+		accel = obj.DEACCEL + abs(obj.world.GRAVITY) + abs(obj.world.ATMO)
+	
+	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.y.normalized(),(obj.movement_input["turn"] * obj.TURN_SPEED * delta))
 
-	hvel = hvel.linear_interpolate(target, accel * delta)
+	
+
+	hvel = hvel.linear_interpolate(obj.target, accel * delta)
 	obj.vel.x = hvel.x
-	obj.vel.y = hvel.y
+	#obj.vel.y = hvel.y
 	obj.vel.z = hvel.z
 	obj.vel = obj.move_and_slide(obj.vel, Vector3(0, 1, 0), 0.05, 4, deg2rad(obj.MAX_SLOPE_ANGLE))
+
+	#if obj.vel.length() > 0.2:
+	#		var look_direction = Vector2(obj.vel.z,obj.vel.x)
+	#		obj.rotation.y = look_direction.angle()
