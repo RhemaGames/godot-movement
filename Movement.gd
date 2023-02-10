@@ -137,7 +137,7 @@ func process_input(obj,disable,inputMap):
 			
 # Mouse look
 
-func mouse_input(obj,event):
+func mouse_input(obj,head,event):
 	var sensitivity = 1
 		# Mouse look (only if the mouse is captured).
 	if obj.MOUSE_SENSITIVITY:
@@ -145,14 +145,17 @@ func mouse_input(obj,event):
 		
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		# Horizontal mouse look.
-		obj.rot.y -= event.relative.x * sensitivity
-		obj.rot.y -= wrapf(obj.rot.y, 0.0 , 360.0)
+		head.rotation.y -= event.relative.x * sensitivity
+		#head.rotation.y -= wrapf(head.rotation.y, 0.0,360.0)
 		 #Vertical mouse look.
+		head.rotation.x = clamp(head.rotation.x - event.relative.y * sensitivity,-1.57, 1.57)
+		
+		## This bit is to move the character in relation to the camera. Needs some work
 		#obj.rot.x = clamp(obj.rot.x - event.relative.y * sensitivity, -1.57, 1.57)
 		#obj.pitch_input = clamp(obj.rot.x - event.relative.y * obj.TURN_SPEED, -1.57, 1.57)
 		#obj.turn_input -= event.relative.x * obj.MOUSE_SENSITIVITY
-		obj.transform.basis = Basis(obj.rot)
-		pass
+		#obj.transform.basis = Basis(head.rotation)
+		
 	if event is InputEventMouseButton and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		
 		pass
@@ -164,7 +167,7 @@ func joypad_input(obj,event):
 		print_debug("Gamepad button",event)
 		
 
-func process_movement_fly(obj,delta):
+func fly_simple(obj,delta):
 	
 	obj.dir = obj.dir.normalized()
 	obj.rot = obj.rot.normalized()
@@ -209,7 +212,7 @@ func process_movement_fly(obj,delta):
 	
 	
 
-func process_movement_walk(obj,delta):
+func walk(obj,delta):
 	
 	obj.dir = obj.dir.normalized()
 	
