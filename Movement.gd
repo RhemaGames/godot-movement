@@ -16,6 +16,10 @@ func _ready():
 
 func Init(obj,_mode):
 	var move_dict = {}
+	var point = Position3D.new()
+	point.name = "ActivePoint"
+	obj.add_child(point)
+	
 	match _mode:
 		"walk": 
 			mode = "walk"
@@ -30,9 +34,7 @@ func Init(obj,_mode):
 				"movement_strafe_left":[{"key":KEY_Z}],
 				"movement_strafe_right":[{"key":KEY_X}]
 			}
-			var point = Position3D.new()
-			point.name = "ActivePoint"
-			obj.add_child(point)
+			
 			
 		"fly":
 			mode = "fly"
