@@ -24,10 +24,10 @@ func Init(obj,_mode):
 		"walk": 
 			mode = "walk"
 			move_dict = {
-				"movement_turn_left":[{"key":KEY_A}],
-				"movement_turn_right":[{"key":KEY_D}],
-				"movement_forward":[{"key":KEY_W}],
-				"movement_backward":[{"key":KEY_S}],
+				"movement_turn_left":[{"key":KEY_A},{"gamepad":-JOY_ANALOG_LX}],
+				"movement_turn_right":[{"key":KEY_D},{"gamepad":JOY_ANALOG_LX}],
+				"movement_forward":[{"key":KEY_W},{"gamepad":JOY_ANALOG_LY}],
+				"movement_backward":[{"key":KEY_S},{"gamepad":JOY_ANALOG_LY}],
 				"movement_jump":[{"key":KEY_SPACE}],
 				"movement_crouch":[{"key":KEY_CONTROL}],
 				"movement_run":[{"key":KEY_SHIFT}],
@@ -39,16 +39,16 @@ func Init(obj,_mode):
 		"fly":
 			mode = "fly"
 			move_dict = {
-				"movement_pitch_up":[{"key":KEY_UP}],
-				"movement_pitch_down":[{"key":KEY_DOWN}],
-				"movement_strafe_left":[{"key":KEY_A}],
-				"movement_strafe_right":[{"key":KEY_D}],
-				"movement_forward":[{"key":KEY_W}],
-				"movement_backward":[{"key":KEY_S}],
-				"movement_roll_right":[{"key":KEY_E}],
-				"movement_roll_left":[{"key":KEY_Q}],
-				"movement_turn_right":[{"key":KEY_RIGHT}],
-				"movement_turn_left":[{"key":KEY_LEFT}]
+				"movement_pitch_up":[{"key":KEY_UP},{"gamepad":-JOY_ANALOG_RY}],
+				"movement_pitch_down":[{"key":KEY_DOWN},{"gamepad":JOY_ANALOG_RY}],
+				"movement_strafe_left":[{"key":KEY_A},{"gamepad":-JOY_ANALOG_RX}],
+				"movement_strafe_right":[{"key":KEY_D},{"gamepad":JOY_ANALOG_RX}],
+				"movement_forward":[{"key":KEY_W},{"gamepad":JOY_ANALOG_LY}],
+				"movement_backward":[{"key":KEY_S},{"gamepad":-JOY_ANALOG_LY}],
+				"movement_roll_right":[{"key":KEY_E},{"button":JOY_R}],
+				"movement_roll_left":[{"key":KEY_Q},{"button":JOY_L}],
+				"movement_turn_right":[{"key":KEY_RIGHT},{"gamepad":JOY_ANALOG_LX}],
+				"movement_turn_left":[{"key":KEY_LEFT},{"gamepad":-JOY_ANALOG_LX}]
 			}
 		"drive":
 			mode = "drive"
@@ -57,14 +57,25 @@ func Init(obj,_mode):
 		InputMap.add_action(act)
 		for input in move_dict[act]:
 			var key = InputEventKey.new()
-			key.set_physical_scancode(move_dict[act][0]["key"])
-			InputMap.action_add_event(act,key)
+			var joy = InputEventJoypadMotion.new()
+			var button = InputEventJoypadButton.new()
+			for inputType in move_dict[act]:
+				if "key" in inputType.keys():
+					key.set_physical_scancode(inputType["key"])
+					InputMap.action_add_event(act,key)
+				if "gamepad" in inputType.keys():
+					joy.set_axis(inputType["gamepad"])
+					InputMap.action_add_event(act,joy)
+				if "button" in inputType.keys():
+					button.set_button_index(inputType["button"])
+					InputMap.action_add_event(act,button)
+			
 		
 	
 
 #### We're using the documented defaults for a kinematic character from Godot's website. Edited for use in Mistro instead of needing to be copied and pasted every node.
 	
-func process_input(obj,disable,inputMap):
+func process_input(obj,disable):
 
 	obj.dir = Vector3()
 	var anchor = obj.get_node("ActivePoint")
