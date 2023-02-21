@@ -39,22 +39,26 @@ func Init(obj,_mode):
 		"fly":
 			mode = "fly"
 			move_dict = {
-				"movement_pitch_up":[{"key":KEY_UP},{"gamepad":-JOY_ANALOG_RY}],
-				"movement_pitch_down":[{"key":KEY_DOWN},{"gamepad":JOY_ANALOG_RY}],
-				"movement_strafe_left":[{"key":KEY_A},{"gamepad":-JOY_ANALOG_RX}],
-				"movement_strafe_right":[{"key":KEY_D},{"gamepad":JOY_ANALOG_RX}],
-				"movement_forward":[{"key":KEY_W},{"gamepad":JOY_ANALOG_LY}],
-				"movement_backward":[{"key":KEY_S},{"gamepad":-JOY_ANALOG_LY}],
+				"movement_pitch_up":[{"key":KEY_UP},{"gamepad":JOY_AXIS_3,"direction":1.0}],
+				"movement_pitch_down":[{"key":KEY_DOWN},{"gamepad":JOY_AXIS_3,"direction":-1.0}],
+				"movement_turn_right":[{"key":KEY_RIGHT},{"gamepad":JOY_AXIS_2,"direction":1.0}],
+				"movement_turn_left":[{"key":KEY_LEFT},{"gamepad":JOY_AXIS_2,"direction":-1.0}],
+				
+				"movement_strafe_left":[{"key":KEY_A},{"gamepad":JOY_AXIS_0,"direction":-1.0}],
+				"movement_strafe_right":[{"key":KEY_D},{"gamepad":JOY_AXIS_0,"direction":1.0}],
+				"movement_forward":[{"key":KEY_W},{"gamepad":JOY_AXIS_1,"direction":-1.0}],
+				"movement_backward":[{"key":KEY_S},{"gamepad":JOY_AXIS_1,"direction":1.0}],
+				
 				"movement_roll_right":[{"key":KEY_E},{"button":JOY_R}],
 				"movement_roll_left":[{"key":KEY_Q},{"button":JOY_L}],
-				"movement_turn_right":[{"key":KEY_RIGHT},{"gamepad":JOY_ANALOG_LX}],
-				"movement_turn_left":[{"key":KEY_LEFT},{"gamepad":-JOY_ANALOG_LX}]
+				
 			}
 		"drive":
 			mode = "drive"
 			
 	for act in move_dict.keys():
 		InputMap.add_action(act)
+		InputMap.action_set_deadzone(act,0.5)
 		for input in move_dict[act]:
 			var key = InputEventKey.new()
 			var joy = InputEventJoypadMotion.new()
@@ -65,6 +69,9 @@ func Init(obj,_mode):
 					InputMap.action_add_event(act,key)
 				if "gamepad" in inputType.keys():
 					joy.set_axis(inputType["gamepad"])
+					if "direction" in inputType:
+						joy.set_axis_value(inputType["direction"])
+					
 					InputMap.action_add_event(act,joy)
 				if "button" in inputType.keys():
 					button.set_button_index(inputType["button"])
@@ -92,6 +99,7 @@ func process_input(obj,disable):
 			obj.movement_input["turn"] = Input.get_action_strength("movement_turn_left") - Input.get_action_strength("movement_turn_right")
 			
 			if !"thrust" in disable: 
+				#print(Input.get_action_raw_strength("movement_forward"))
 				obj.movement_input["thrust"] = Input.get_action_strength("movement_forward") - Input.get_action_strength("movement_backward")
 			else:
 				obj.movement_input["thrust"] = 0
