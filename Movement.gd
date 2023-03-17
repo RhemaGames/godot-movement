@@ -181,10 +181,11 @@ func mouse_input(obj,head,mouseDelta,delta):
 		## This bit is to move the character in relation to the camera. Needs some work
 		#obj.rot.x = clamp(obj.rot.x - event.relative.y * sensitivity, -1.57, 1.57)
 		#obj.pitch_input = clamp(obj.rot.x - event.relative.y * obj.TURN_SPEED, -1.57, 1.57)
-		#obj.turn_input -= event.relative.x * obj.MOUSE_SENSITIVITY
+		obj.movement_input["turn"] -= event.relative.x * obj.MOUSE_SENSITIVITY
 		#obj.transform.basis = Basis(head.rotation)
 		mouseDelta = Vector2()
 		return mouseDelta
+
 
 		
 func joypad_input(obj,event):
