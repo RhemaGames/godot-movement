@@ -90,7 +90,7 @@ func process_input(obj,disable):
 	
 	match mode:
 		"fly":
-			if obj.INVERSE_CONTROL:
+			if !obj.INVERSE_CONTROL:
 				obj.movement_input["pitch"] =  Input.get_action_strength("movement_pitch_up") - Input.get_action_strength("movement_pitch_down")
 			else:
 				obj.movement_input["pitch"]  = Input.get_action_strength("movement_pitch_down") - Input.get_action_strength("movement_pitch_up")
@@ -152,7 +152,7 @@ func process_input(obj,disable):
 
 	# Game Defined inputs 
 	for act in obj.actions:
-		if Input.is_action_pressed(act):
+		if Input.is_action_just_pressed(act):
 			#print_debug(act)
 			obj.emit_signal("action",act)
 			
