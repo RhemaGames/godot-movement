@@ -56,55 +56,54 @@ func Init(obj,_mode):
 		"drive":
 			mode = "drive"
 			
-	for act in move_dict:
-		InputMap.add_action(act)
-		InputMap.action_set_deadzone(act,0.5)
-		for input in move_dict[act]:
-			var key = InputEventKey.new()
-			var joy = InputEventJoypadMotion.new()
-			var button = InputEventJoypadButton.new()
-			for inputType in move_dict[act]:
-				if "key" in inputType.keys():
-					key.set_physical_keycode(inputType["key"])
-					InputMap.action_add_event(act,key)
-				if "gamepad" in inputType.keys():
-					joy.set_axis(inputType["gamepad"])
-					if "direction" in inputType:
-						joy.set_axis_value(inputType["direction"])
-					
-					InputMap.action_add_event(act,joy)
-				if "button" in inputType.keys():
-					button.set_button_index(inputType["button"])
-					InputMap.action_add_event(act,button)
+#	for act in move_dict:
+#		InputMap.add_action(act)
+#		InputMap.action_set_deadzone(act,0.5)
+#		for input in move_dict[act]:
+#			var key = InputEventKey.new()
+#			var joy = InputEventJoypadMotion.new()
+#			var button = InputEventJoypadButton.new()
+#			for inputType in move_dict[act]:
+#				if "key" in inputType.keys():
+#					key.set_physical_keycode(inputType["key"])
+#					InputMap.action_add_event(act,key)
+#				if "gamepad" in inputType.keys():
+#					joy.set_axis(inputType["gamepad"])
+#					if "direction" in inputType:
+#						joy.set_axis_value(inputType["direction"])
+#					InputMap.action_add_event(act,joy)
+#				if "button" in inputType.keys():
+#					button.set_button_index(inputType["button"])
+#					InputMap.action_add_event(act,button)
 			
 		
 	
 
 #### We're using the documented defaults for a kinematic character from Godot's website. Edited for use in Mistro instead of needing to be copied and pasted every node.
 	
-func process_input(obj,disable):
-
+func process_input(obj,disable,device):
 	obj.dir = Vector3()
 	var anchor = obj.get_node("ActivePoint")
 	var cam_xform = anchor.get_global_transform()
+	var player = "p"+str(device)
 	
 	match mode:
 		"fly":
 			if !obj.INVERSE_CONTROL:
-				obj.movement_input["pitch"] =  Input.get_action_strength("movement_pitch_up") - Input.get_action_strength("movement_pitch_down")
+				obj.movement_input["pitch"] =  Input.get_action_strength(player+"_movement_pitch_up") - Input.get_action_strength(player+"_movement_pitch_down")
 			else:
-				obj.movement_input["pitch"]  = Input.get_action_strength("movement_pitch_down") - Input.get_action_strength("movement_pitch_up")
+				obj.movement_input["pitch"]  = Input.get_action_strength(player+"_movement_pitch_down") - Input.get_action_strength(player+"_movement_pitch_up")
 		
-			obj.movement_input["rotation"] = Input.get_action_strength("movement_roll_right") - Input.get_action_strength("movement_roll_left")
-			obj.movement_input["turn"] = Input.get_action_strength("movement_turn_left") - Input.get_action_strength("movement_turn_right")
+			obj.movement_input["rotation"] = Input.get_action_strength(player+"_movement_roll_right") - Input.get_action_strength(player+"_movement_roll_left")
+			obj.movement_input["turn"] = Input.get_action_strength(player+"_movement_turn_left") - Input.get_action_strength(player+"_movement_turn_right")
 			
 			if !"thrust" in disable: 
 				#print(Input.get_action_raw_strength("movement_forward"))
-				obj.movement_input["thrust"] = Input.get_action_strength("movement_forward") - Input.get_action_strength("movement_backward")
+				obj.movement_input["thrust"] = Input.get_action_strength(player+"_movement_forward") - Input.get_action_strength(player+"_movement_backward")
 			else:
 				obj.movement_input["thrust"] = 0
 			if !"strafe" in disable:
-				obj.movement_input["strafe"] = Input.get_action_strength("movement_strafe_right") - Input.get_action_strength("movement_strafe_left")
+				obj.movement_input["strafe"] = Input.get_action_strength(player+"_movement_strafe_right") - Input.get_action_strength(player+"_movement_strafe_left")
 			else:
 				obj.movement_input["strafe"] = 0	
 
@@ -116,15 +115,15 @@ func process_input(obj,disable):
 			obj.dir += cam_xform.basis.x * obj.movement_input["strafe"]
 			
 		"walk":
-			obj.movement_input["turn"] =  Input.get_action_strength("movement_turn_left") - Input.get_action_strength("movement_turn_right")
+			obj.movement_input["turn"] =  Input.get_action_strength(player+"_movement_turn_left") - Input.get_action_strength(player+"_movement_turn_right")
 			
 			if !"walk" in disable: 
-				obj.movement_input["walk"] = Input.get_action_strength("movement_forward") - Input.get_action_strength("movement_backward")
+				obj.movement_input["walk"] = Input.get_action_strength(player+"_movement_forward") - Input.get_action_strength(player+"_movement_backward")
 			else:
 				obj.movement_input["walk"] = 0
 				
 			if !"strafe" in disable:
-				obj.movement_input["strafe"] = Input.get_action_strength("movement_strafe_right") - Input.get_action_strength("movement_strafe_left")
+				obj.movement_input["strafe"] = Input.get_action_strength(player+"_movement_strafe_right") - Input.get_action_strength(player+"_movement_strafe_left")
 			else:
 				obj.movement_input["strafe"] = 0
 			
@@ -136,7 +135,7 @@ func process_input(obj,disable):
 			# ----------------------------------
 			## Jump
 			if obj.is_on_floor():
-				if Input.is_action_just_pressed("movement_jump"):
+				if Input.is_action_just_pressed(player+"_movement_jump"):
 					obj.vel.y = obj.JUMP_SPEED
 			# ----------------------------------
 
@@ -152,7 +151,7 @@ func process_input(obj,disable):
 
 	# Game Defined inputs 
 	for act in obj.actions:
-		if Input.is_action_just_pressed(act):
+		if Input.is_action_just_pressed(player+"_"+act):
 			#print_debug(act)
 			obj.emit_signal("action",act)
 			
@@ -204,8 +203,6 @@ func fly_simple(obj,delta):
 	#	obj.thrust -= 1
 	
 	obj.vel.y += obj.world.GRAVITY - obj.world.ATMO
-
-	
 
 	var hvel = obj.vel
 	var hrot = obj.rot
