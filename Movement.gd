@@ -152,13 +152,13 @@ func process_input(obj,disable,device):
 	# Game Defined inputs 
 	for act in obj.actions:
 		if Input.is_action_just_pressed(player+"_"+act):
-			#print_debug(act)
-			obj.emit_signal("action",act)
+			print_debug("From Movement: ",act," by ",obj)
+			obj.emit_signal("action",act,obj)
 			
 			
 # Mouse look
 
-func mouse_input(obj,head,mouseDelta,delta):
+func mouse_input(obj,head,mouseDelta,_delta):
 	var sensitivity = 1
 		# Mouse look (only if the mouse is captured).
 	if obj.MOUSE_SENSITIVITY:
@@ -187,7 +187,7 @@ func mouse_input(obj,head,mouseDelta,delta):
 
 
 		
-func joypad_input(obj,event):
+func joypad_input(_obj,event):
 	if event is InputEventJoypadMotion:
 		print_debug("Gamepad motion ",event)
 	if event is InputEventJoypadButton:
