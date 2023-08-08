@@ -98,19 +98,17 @@ func process_input(obj,disable,device):
 			obj.movement_input["turn"] = Input.get_action_strength(player+"_movement_turn_left") - Input.get_action_strength(player+"_movement_turn_right")
 			
 			if !"thrust" in disable: 
-				#print(Input.get_action_raw_strength("movement_forward"))
 				obj.movement_input["thrust"] = Input.get_action_strength(player+"_movement_forward") - Input.get_action_strength(player+"_movement_backward")
-			else:
-				obj.movement_input["thrust"] = 0
+				if obj.movement_input["thrust"] > 0:
+					obj.target_speed = min(obj.forward_speed + obj.ACCEL, obj.MAX_SPEED)
+				elif obj.movement_input["thrust"] < 0:
+					obj.target_speed = max(obj.forward_speed - obj.ACCEL, -100.00)
+					
 			if !"strafe" in disable:
 				obj.movement_input["strafe"] = Input.get_action_strength(player+"_movement_strafe_right") - Input.get_action_strength(player+"_movement_strafe_left")
 			else:
 				obj.movement_input["strafe"] = 0	
 
-			#input_movement_vector = input_movement_vector.normalized()
-			#input_rotation_vector = input_rotation_vector.normalized()
-
-	
 			obj.dir += -cam_xform.basis.z * obj.movement_input["thrust"]
 			obj.dir += cam_xform.basis.x * obj.movement_input["strafe"]
 			
@@ -193,6 +191,19 @@ func joypad_input(_obj,event):
 	if event is InputEventJoypadButton:
 		print_debug("Gamepad button",event)
 		
+func fly_redux(obj,delta):
+	
+	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.x.normalized(),(-obj.movement_input["pitch"] * obj.TURN_SPEED * delta))
+	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.y.normalized(),(obj.movement_input["turn"] * obj.TURN_SPEED * delta))
+	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.z.normalized(),(-obj.movement_input["rotation"] * obj.TURN_SPEED * delta))
+	# Accelerate/decelerate
+	obj.forward_speed = lerp(obj.forward_speed, obj.target_speed, obj.acceleration * delta)
+	# Movement is always forward
+	obj.velocity = -obj.transform.basis.z * obj.forward_speed
+	obj.move_and_slide()
+	obj.ship.rotation.z = lerp(obj.ship.rotation.z, obj.movement_input["turn"] * obj.TURN_SPEED, obj.level_speed * delta)
+	obj.ship.rotation.y = lerp(obj.ship.rotation.y, obj.movement_input["turn"] * obj.TURN_SPEED, obj.level_speed  * delta)
+	obj.ship.rotation.x = lerp(obj.ship.rotation.x, (-1 * obj.movement_input["pitch"]) * obj.TURN_SPEED, obj.level_speed * delta)
 
 func fly_simple(obj,delta):
 	
@@ -205,17 +216,17 @@ func fly_simple(obj,delta):
 	obj.vel.y += obj.world.GRAVITY - obj.world.ATMO
 
 	var hvel = obj.vel
-	var hrot = obj.rot
+	var _hrot = obj.rot
 	#hvel.y = 0
 
 	obj.target = obj.dir
 	obj.target *= obj.MAX_SPEED
 
 	var accel:float 
-	if obj.dir.dot(hvel) > 0:
-		accel = obj.ACCEL - (obj.world.GRAVITY + obj.world.ATMO)
-	else:
-		accel = obj.ACCEL - (obj.world.GRAVITY + obj.world.ATMO)
+	#if obj.dir.dot(hvel) > 0:
+	accel = obj.ACCEL - (obj.world.GRAVITY + obj.world.ATMO)
+	#else:
+	#	accel = obj.ACCEL - (obj.world.GRAVITY + obj.world.ATMO)
 			
 	#obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.x,obj.rot.x * 0.01)
 	#obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.y,obj.rot.y * 0.01)
@@ -235,9 +246,9 @@ func fly_simple(obj,delta):
 	obj.set_velocity(obj.vel)
 	obj.set_motion_mode(1)
 	#obj.set_up_direction(Vector3(0, 0, 0))
-	obj.set_floor_stop_on_slope_enabled(0.05)
+	#obj.set_floor_stop_on_slope_enabled(0.05)
 	obj.set_max_slides(4)
-	obj.set_floor_max_angle(deg_to_rad(obj.MAX_SLOPE_ANGLE))
+	#obj.set_floor_max_angle(deg_to_rad(obj.MAX_SLOPE_ANGLE))
 	obj.move_and_slide()
 	obj.vel = obj.velocity
 	#obj.vel = obj.move_and_collide(obj.vel)
