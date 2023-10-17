@@ -191,7 +191,7 @@ func joypad_input(_obj,event):
 	if event is InputEventJoypadButton:
 		print_debug("Gamepad button",event)
 		
-func fly_redux(obj,delta):
+func fly_redux(obj,delta,locked:bool = false):
 	
 	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.x.normalized(),(-obj.movement_input["pitch"] * obj.TURN_SPEED * delta))
 	obj.transform.basis = obj.transform.basis.rotated(obj.transform.basis.y.normalized(),(obj.movement_input["turn"] * obj.TURN_SPEED * delta))
@@ -201,10 +201,13 @@ func fly_redux(obj,delta):
 	# Movement is always forward
 	obj.velocity = -obj.transform.basis.z * obj.forward_speed
 	obj.move_and_slide()
-	obj.ship.rotation.z = lerp(obj.ship.rotation.z, obj.movement_input["turn"] * obj.TURN_SPEED, obj.level_speed * delta)
-	obj.ship.rotation.y = lerp(obj.ship.rotation.y, obj.movement_input["turn"] * obj.TURN_SPEED, obj.level_speed  * delta)
-	obj.ship.rotation.x = lerp(obj.ship.rotation.x, (-1 * obj.movement_input["pitch"]) * obj.TURN_SPEED, obj.level_speed * delta)
-
+	if !locked:
+		obj.ship.rotation.z = lerp(obj.ship.rotation.z, obj.movement_input["turn"] * obj.TURN_SPEED, obj.level_speed * delta)
+		obj.ship.rotation.y = lerp(obj.ship.rotation.y, obj.movement_input["turn"] * obj.TURN_SPEED, obj.level_speed  * delta)
+		obj.ship.rotation.x = lerp(obj.ship.rotation.x, (-1 * obj.movement_input["pitch"]) * obj.TURN_SPEED, obj.level_speed * delta)
+	else:
+		obj.ship.rotation = Vector3(0,0,0)
+		
 func fly_simple(obj,delta):
 	
 	obj.dir = obj.dir.normalized()
