@@ -150,8 +150,11 @@ func process_input(obj,disable,device):
 	# Game Defined inputs 
 	for act in obj.actions:
 		if Input.is_action_just_pressed(player+"_"+act):
-			print_debug("From Movement: ",act," by ",obj)
-			obj.emit_signal("action",act,obj)
+			#print_debug("From Movement: ",act," by ",obj)
+			obj.emit_signal("action",act,obj,"pressed")
+		if Input.is_action_just_released(player+"_"+act):
+			#print_debug("From Movement: ",act," by ",obj)
+			obj.emit_signal("action",act,obj,"released")
 			
 			
 # Mouse look
